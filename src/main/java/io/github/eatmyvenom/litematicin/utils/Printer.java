@@ -27,6 +27,7 @@ import fi.dy.masa.litematica.util.RayTraceUtils;
 import fi.dy.masa.litematica.util.RayTraceUtils.RayTraceWrapper;
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
 import fi.dy.masa.malilib.util.IntBoundingBox;
+import fi.dy.masa.malilib.util.LayerRange;
 import fi.dy.masa.malilib.util.SubChunkPos;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -299,7 +300,7 @@ public class Printer {
         if (!foundBox) {
             return ActionResult.PASS;
         }
-
+        LayerRange range = DataManager.getRenderLayerRange(); //add range following
         int rangeX = EASY_PLACE_MODE_RANGE_X.getIntegerValue();
         int rangeY = EASY_PLACE_MODE_RANGE_Y.getIntegerValue();
         int rangeZ = EASY_PLACE_MODE_RANGE_Z.getIntegerValue();
@@ -358,7 +359,8 @@ public class Printer {
                         continue;
 
                     BlockPos pos = new BlockPos(x, y, z);
-
+                    if (range.isPositionWithinRange(pos) == false)
+                        continue;
                     BlockState stateSchematic = world.getBlockState(pos);
                     BlockState stateClient = mc.world.getBlockState(pos);
 
