@@ -59,6 +59,11 @@ import net.minecraft.block.PillarBlock;
 import net.minecraft.block.PistonBlock;
 import net.minecraft.block.PumpkinBlock;
 import net.minecraft.block.RepeaterBlock;
+import net.minecraft.block.SandBlock;
+import net.minecraft.block.ConcretePowderBlock;
+import net.minecraft.block.GravelBlock;
+import net.minecraft.block.AnvilBlock;
+import net.minecraft.block.DragonEggBlock;
 import net.minecraft.block.SeaPickleBlock;
 import net.minecraft.block.SignBlock;
 import net.minecraft.block.SlabBlock;
@@ -463,7 +468,8 @@ public class Printer {
                                                 clickTimes = targetNote + (25 - note);
                                             }
                                         }
-                                    }
+                                    } 
+
 
                                     for (int i = 0; i < clickTimes; i++) // Click on the block a few times
                                     {
@@ -498,10 +504,40 @@ public class Printer {
 
                     ItemStack stack = ((MaterialCache) MaterialCache.getInstance()).getRequiredBuildItemForState((BlockState)stateSchematic);
                     if (stack.isEmpty() == false && (mc.player.getAbilities().creativeMode || mc.player.getInventory().getSlotWithStack(stack) != -1)) {
-
+                            Block sBlock = stateSchematic.getBlock();
                         if (stateSchematic == stateClient) {
                             continue;
-                        }
+                        } else if (sBlock instanceof SandBlock) {
+			BlockPos Offsetpos = new BlockPos(x, y-1, z);
+                    		BlockState OffsetstateSchematic = world.getBlockState(Offsetpos);
+                    		BlockState OffsetstateClient = mc.world.getBlockState(Offsetpos);
+                                        if (OffsetstateClient.isAir())
+                                            continue;
+                                    } else if (sBlock instanceof ConcretePowderBlock) {
+			BlockPos Offsetpos = new BlockPos(x, y-1, z);
+                    		BlockState OffsetstateSchematic = world.getBlockState(Offsetpos);
+                    		BlockState OffsetstateClient = mc.world.getBlockState(Offsetpos);
+                                        if (OffsetstateClient.isAir())
+                                            continue;
+                                    } else if (sBlock instanceof GravelBlock) {
+			BlockPos Offsetpos = new BlockPos(x, y-1, z);
+                    		BlockState OffsetstateSchematic = world.getBlockState(Offsetpos);
+                    		BlockState OffsetstateClient = mc.world.getBlockState(Offsetpos);
+                                        if (OffsetstateClient.isAir())
+                                            continue;
+                                    } else if (sBlock instanceof AnvilBlock) {
+			BlockPos Offsetpos = new BlockPos(x, y-1, z);
+                    		BlockState OffsetstateSchematic = world.getBlockState(Offsetpos);
+                    		BlockState OffsetstateClient = mc.world.getBlockState(Offsetpos);
+                                        if (OffsetstateClient.isAir())
+                                            continue;
+                                    } else if (sBlock instanceof DragonEggBlock) {
+			BlockPos Offsetpos = new BlockPos(x, y-1, z);
+                    		BlockState OffsetstateSchematic = world.getBlockState(Offsetpos);
+                    		BlockState OffsetstateClient = mc.world.getBlockState(Offsetpos);
+                                        if (OffsetstateClient.isAir())
+                                            continue;
+                                    }
 
                         Direction facing = fi.dy.masa.malilib.util.BlockUtils
                                 .getFirstPropertyFacingValue(stateSchematic);
