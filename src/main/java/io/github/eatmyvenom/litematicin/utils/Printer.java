@@ -60,6 +60,7 @@ import net.minecraft.block.PistonBlock;
 import net.minecraft.block.PumpkinBlock;
 import net.minecraft.block.RepeaterBlock;
 import net.minecraft.block.SandBlock;
+import net.minecraft.block.SnowBlock;
 import net.minecraft.block.ConcretePowderBlock;
 import net.minecraft.block.GravelBlock;
 import net.minecraft.block.AnvilBlock;
@@ -775,7 +776,10 @@ public class Printer {
                 return blockSchematic != blockClient;
             }
         }
-
+        Block blockClient = stateClient.getBlock();
+        if (blockClient instanceof SnowBlock && stateClient.get(SnowBlock.LAYERS) <3) {
+                return false;
+        }
         if (stateClient.isAir()) // This is a lot simpler than below. But slightly lacks functionality.
             return false;
         /*
