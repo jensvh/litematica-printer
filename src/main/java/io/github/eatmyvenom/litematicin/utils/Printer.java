@@ -58,6 +58,7 @@ import net.minecraft.block.PillarBlock;
 import net.minecraft.block.PistonBlock;
 import net.minecraft.block.PumpkinBlock;
 import net.minecraft.block.RepeaterBlock;
+import net.minecraft.block.SeaPickleBlock;
 import net.minecraft.block.SignBlock;
 import net.minecraft.block.SlabBlock;
 import net.minecraft.block.StairsBlock;
@@ -655,7 +656,17 @@ public class Printer {
                                 interact++;
                             }
                         }
-
+                        if (stateSchematic.getBlock() instanceof SeaPickleBlock
+                                && stateSchematic.get(SeaPickleBlock.PICKLES)>1) {
+                            stateClient = mc.world.getBlockState(npos);
+                            if (stateClient.getBlock() instanceof SeaPickleBlock
+                                    && stateClient.get(SeaPickleBlock.PICKLES) < stateSchematic.get(SeaPickleBlock.PICKLES)) {
+                                side = applyPlacementFacing(stateSchematic, sideOrig, stateClient);
+                                hitResult = new BlockHitResult(hitPos, side, npos, false);
+                                mc.interactionManager.interactBlock(mc.player, mc.world, hand, hitResult);
+                                interact++;
+                            }
+                        }
                         if (interact >= maxInteract) {
                         	lastPlaced = new Date().getTime();
                             return ActionResult.SUCCESS;
@@ -712,7 +723,13 @@ public class Printer {
     private static boolean printerCheckCancel(BlockState stateSchematic, BlockState stateClient,
             PlayerEntity player) {
         Block blockSchematic = stateSchematic.getBlock();
+        if (blockSchematic instanceof SeaPickleBlock && stateSchematic.get(SeaPickleBlock.PICKLES) >1) {
+            Block blockClient = stateClient.getBlock();
 
+            if (blockClient instanceof SeaPickleBlock && stateClient.get(SeaPickleBlock.PICKLES) != stateSchematic.get(SeaPickleBlock.PICKLES)) {
+                return blockSchematic != blockClient;
+            }
+        }
         if (blockSchematic instanceof SlabBlock && stateSchematic.get(SlabBlock.TYPE) == SlabType.DOUBLE) {
             Block blockClient = stateClient.getBlock();
 
