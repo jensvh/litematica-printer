@@ -381,6 +381,7 @@ public class Printer {
                                     return ActionResult.SUCCESS;
                                 }
                         	} else { // For survival
+				mc.interactionManager.attackBlock(pos, Direction.DOWN); //yes, this seemingly needless line adds functionality but paper would not allow it.
                             	breaker.startBreakingBlock(pos, mc); // it need to avoid unbreakable blocks and just added water and lava, but its not block so somehow made it work
                             	return ActionResult.SUCCESS;
                         	}
@@ -511,31 +512,31 @@ public class Printer {
 			BlockPos Offsetpos = new BlockPos(x, y-1, z);
                     		BlockState OffsetstateSchematic = world.getBlockState(Offsetpos);
                     		BlockState OffsetstateClient = mc.world.getBlockState(Offsetpos);
-                                        if (OffsetstateClient.isAir())
+                                        if (OffsetstateClient.isAir() || (breakBlocks && !OffsetstateClient.getBlock().getName().equals(OffsetstateSchematic.getBlock().getName())) )
                                             continue;
                                     } else if (sBlock instanceof ConcretePowderBlock) {
 			BlockPos Offsetpos = new BlockPos(x, y-1, z);
                     		BlockState OffsetstateSchematic = world.getBlockState(Offsetpos);
                     		BlockState OffsetstateClient = mc.world.getBlockState(Offsetpos);
-                                        if (OffsetstateClient.isAir())
+                                        if (OffsetstateClient.isAir() || (breakBlocks && !OffsetstateClient.getBlock().getName().equals(OffsetstateSchematic.getBlock().getName())) )
                                             continue;
                                     } else if (sBlock instanceof GravelBlock) {
 			BlockPos Offsetpos = new BlockPos(x, y-1, z);
                     		BlockState OffsetstateSchematic = world.getBlockState(Offsetpos);
                     		BlockState OffsetstateClient = mc.world.getBlockState(Offsetpos);
-                                        if (OffsetstateClient.isAir())
+                                        if (OffsetstateClient.isAir() || (breakBlocks && !OffsetstateClient.getBlock().getName().equals(OffsetstateSchematic.getBlock().getName())) )
                                             continue;
                                     } else if (sBlock instanceof AnvilBlock) {
 			BlockPos Offsetpos = new BlockPos(x, y-1, z);
                     		BlockState OffsetstateSchematic = world.getBlockState(Offsetpos);
                     		BlockState OffsetstateClient = mc.world.getBlockState(Offsetpos);
-                                        if (OffsetstateClient.isAir())
+                                        if (OffsetstateClient.isAir() || (breakBlocks && !OffsetstateClient.getBlock().getName().equals(OffsetstateSchematic.getBlock().getName())) )
                                             continue;
                                     } else if (sBlock instanceof DragonEggBlock) {
 			BlockPos Offsetpos = new BlockPos(x, y-1, z);
                     		BlockState OffsetstateSchematic = world.getBlockState(Offsetpos);
                     		BlockState OffsetstateClient = mc.world.getBlockState(Offsetpos);
-                                        if (OffsetstateClient.isAir())
+                                        if (OffsetstateClient.isAir() || (breakBlocks && !OffsetstateClient.getBlock().getName().equals(OffsetstateSchematic.getBlock().getName())) )
                                             continue;
                                     }
 
