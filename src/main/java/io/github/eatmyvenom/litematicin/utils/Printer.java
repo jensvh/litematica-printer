@@ -369,9 +369,8 @@ public class Printer {
                         continue;
                     BlockState stateSchematic = world.getBlockState(pos);
                     BlockState stateClient = mc.world.getBlockState(pos);
-
-                    if (breakBlocks && stateSchematic != null && !stateClient.isAir()) {
-                        if (!stateClient.getBlock().getName().equals(stateSchematic.getBlock().getName()) && dx * dx + Math.pow(dy + 1.5,2) + dz * dz <= 36.0) {
+                    if (breakBlocks && stateSchematic != null && !stateClient.isAir() && !stateClient.getBlock().getTranslationKey().contains((String) "water") && !stateClient.getBlock().getTranslationKey().contains((String) "lava")) {
+                        if (!stateClient.getBlock().getName().equals(stateSchematic.getBlock().getName()) && dx * dx + Math.pow(dy + 1.5,2) + dz * dz <= MaxReach * MaxReach) {
                             
                         	if (mc.player.getAbilities().creativeMode) {
                         		mc.interactionManager.attackBlock(pos, Direction.DOWN);
@@ -382,7 +381,7 @@ public class Printer {
                                     return ActionResult.SUCCESS;
                                 }
                         	} else { // For survival
-                            	breaker.startBreakingBlock(pos, mc);
+                            	breaker.startBreakingBlock(pos, mc); // it need to avoid unbreakable blocks and just added water and lava, but its not block so somehow made it work
                             	return ActionResult.SUCCESS;
                         	}
                         }
@@ -780,7 +779,7 @@ public class Printer {
         if (blockClient instanceof SnowBlock && stateClient.get(SnowBlock.LAYERS) <3) {
                 return false;
         }
-        if (stateClient.isAir()) // This is a lot simpler than below. But slightly lacks functionality.
+        if (stateClient.isAir() || stateClient.getBlock().getTranslationKey().contains((String) "water") || stateClient.getBlock().getTranslationKey().contains((String) "lava")) // This is a lot simpler than below. But slightly lacks functionality.
             return false;
         /*
          * if (trace.getType() != HitResult.Type.BLOCK) { return false; }
