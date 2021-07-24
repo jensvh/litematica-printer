@@ -574,6 +574,13 @@ public class Printer {
                         BlockPos npos = pos;
                         Direction side = applyPlacementFacing(stateSchematic, sideOrig, stateClient);
                         Block blockSchematic = stateSchematic.getBlock();
+                        if (blockSchematic instanceof TorchBlock) {
+                        BlockPos Offsetpos = new BlockPos(x, y-1, z);
+                        BlockState OffsetstateSchematic = world.getBlockState(Offsetpos);
+                        BlockState OffsetstateClient = mc.world.getBlockState(Offsetpos);
+                                if(OffsetstateClient.getBlock().getTranslationKey().contains((String) "water") || OffsetstateClient.getBlock().getTranslationKey().contains((String) "lava")){
+                                continue;}
+                        }
                         if (blockSchematic instanceof WallMountedBlock || blockSchematic instanceof TorchBlock
                                 || blockSchematic instanceof LadderBlock || blockSchematic instanceof TrapdoorBlock
                                 || blockSchematic instanceof TripwireHookBlock || blockSchematic instanceof SignBlock || blockSchematic instanceof EndRodBlock) {
