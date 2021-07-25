@@ -381,7 +381,10 @@ public class Printer {
                                     return ActionResult.SUCCESS;
                                 }
                         	} else { // For survival
-				mc.interactionManager.attackBlock(pos, Direction.DOWN); //yes, this seemingly needless line adds functionality but paper would not allow it.
+				if (!EASY_PLACE_MODE_PAPER.getBooleanValue()) {
+				    mc.interactionManager.attackBlock(pos, Direction.DOWN); //yes, this seemingly needless line adds functionality but paper would not allow it.
+				    return ActionResult.SUCCESS;
+				}
                             	breaker.startBreakingBlock(pos, mc); // it need to avoid unbreakable blocks and just added water and lava, but its not block so somehow made it work
                             	return ActionResult.SUCCESS;
                         	}
