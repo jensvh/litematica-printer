@@ -556,7 +556,6 @@ public class Printer {
                         Block blockSchematic = stateSchematic.getBlock();
                         if (blockSchematic instanceof TorchBlock) {
                         BlockPos Offsetpos = new BlockPos(x, y-1, z);
-                        BlockState OffsetstateSchematic = world.getBlockState(Offsetpos);
                         BlockState OffsetstateClient = mc.world.getBlockState(Offsetpos);
                                 if(OffsetstateClient.getBlock().getTranslationKey().contains((String) "water") || OffsetstateClient.getBlock().getTranslationKey().contains((String) "lava")){
                                 continue;}
