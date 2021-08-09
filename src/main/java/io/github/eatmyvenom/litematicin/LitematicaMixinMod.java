@@ -2,6 +2,7 @@ package io.github.eatmyvenom.litematicin;
 
 import com.google.common.collect.ImmutableList;
 
+import fi.dy.masa.litematica.Reference;
 import fi.dy.masa.litematica.config.Configs;
 import fi.dy.masa.malilib.config.IConfigBase;
 import fi.dy.masa.malilib.config.options.ConfigBoolean;
@@ -9,13 +10,16 @@ import fi.dy.masa.malilib.config.options.ConfigDouble;
 import fi.dy.masa.malilib.config.options.ConfigInteger;
 import fi.dy.masa.malilib.config.options.ConfigString;
 import io.github.eatmyvenom.litematicin.utils.Printer;
-import net.fabricmc.api.ModInitializer;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
-import net.minecraft.util.Identifier;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.registry.Registry;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
-public class LitematicaMixinMod implements ModInitializer {
+@Mod(Reference.MOD_ID)
+public class LitematicaMixinMod {
 
 	public static final ConfigInteger EASY_PLACE_MODE_RANGE_X      	= new ConfigInteger("easyPlaceModeRangeX", 3, 0, 1024, "X Range for EasyPlace");
 	public static final ConfigInteger EASY_PLACE_MODE_RANGE_Y      	= new ConfigInteger("easyPlaceModeRangeY", 3, 0, 1024, "Y Range for EasyPlace");
@@ -40,24 +44,29 @@ public class LitematicaMixinMod implements ModInitializer {
 			.add(EASY_PLACE_MODE_REPLACE_FLUIDS)
 			.build();
     
-	@Override
-	public void onInitialize() {
+    public LitematicaMixinMod()
+    {
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onClientSetup);
+    }
+
+    private void onClientSetup(final FMLClientSetupEvent event)
+    {
 		System.out.println("YeeFuckinHaw");
 		EASY_PLACE_MODE_REPLACE_FLUIDS.setValueChangeCallback((config) -> {
 		    String name = config.getStringValue();
 		    
 	        if (name.isEmpty() || name.equals("none")) {
-	            Printer.waterReplacementBlock = Blocks.AIR.getDefaultState();
+	            Printer.waterReplacementBlock = Blocks.AIR.defaultBlockState();
 	            return;
 	        }
-	        Block block = Registry.BLOCK.get(new Identifier(name));
+	        Block block = Registry.BLOCK.get(new ResourceLocation(name));
 
-	        if (block != null && block.getDefaultState().getMaterial().isSolid()) { 
-	            Printer.waterReplacementBlock = block.getDefaultState();
+	        if (block != null && block.defaultBlockState().getMaterial().isSolid()) { 
+	            Printer.waterReplacementBlock = block.defaultBlockState();
 	            return;
 	        }
 	        
-	        Printer.waterReplacementBlock = Blocks.AIR.getDefaultState();
+	        Printer.waterReplacementBlock = Blocks.AIR.defaultBlockState();
 		});
 	}
 }

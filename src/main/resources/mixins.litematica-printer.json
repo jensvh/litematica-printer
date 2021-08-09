@@ -1,0 +1,15 @@
+{
+    "required": true,
+    "package": "io.github.eatmyvenom.litematicin.mixin.Litematica",
+    "compatibilityLevel": "JAVA_8",
+    "minVersion": "0.7",
+    "refmap": "mixins.litematica.refmap.json",
+    "client": [
+        "ConfigsMixin",
+        "GuiConfigsMixin",
+        "WorldUtilsMixin"
+    ],
+    "injectors": {
+        "defaultRequire": 1
+    }
+}

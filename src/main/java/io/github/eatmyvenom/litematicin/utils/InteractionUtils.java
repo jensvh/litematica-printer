@@ -3,17 +3,19 @@ package io.github.eatmyvenom.litematicin.utils;
 import java.util.function.Predicate;
 
 import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.hit.HitResult.Type;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vec3i;
-import net.minecraft.world.RaycastContext;
+import net.minecraft.util.math.RayTraceContext;
+import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.util.math.RayTraceContext.BlockMode;
+import net.minecraft.util.math.RayTraceContext.FluidMode;
+import net.minecraft.util.math.RayTraceResult.Type;
+import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.math.vector.Vector3i;
 
 public class InteractionUtils {
     
@@ -23,12 +25,12 @@ public class InteractionUtils {
      * @param mc
      * @return
      */
-    public static ViewResult canSeeAndInteractWithBlock(BlockPos pos, MinecraftClient mc, Predicate<BlockState> statesToAccept) {
+    public static ViewResult canSeeAndInteractWithBlock(BlockPos pos, Minecraft mc, Predicate<BlockState> statesToAccept) {
         Direction[] possibleDirections = Direction.values();
         
         for (int i = 0; i < possibleDirections.length; i++) {
-            Vec3i vec = possibleDirections[i].getVector();
-            BlockState state = mc.world.getBlockState(pos.add(vec));
+            Vector3i vec = possibleDirections[i].getNormal();
+            BlockState state = mc.level.getBlockState(pos.offset(vec));
             
             // You can't place water on air or a waterloggen block
             if (!statesToAccept.test(state)) continue;
@@ -51,12 +53,12 @@ public class InteractionUtils {
      */
     private static Rotation getNeededRotation(PlayerEntity me, BlockPos pos, Direction blockFace)
     {
-        Vec3d posD = Vec3d.ofCenter(pos);
-        Vec3d to = posD.add(Vec3d.of(blockFace.getVector()).multiply(0.5d));
+        Vector3d posD = Vector3d.atCenterOf(pos);
+        Vector3d to = posD.add(Vector3d.atLowerCornerOf(blockFace.getNormal()).multiply(0.5d, 0.5d, 0.5d));
         
-        double dirx = me.getX() - to.getX();
-        double diry = me.getEyeY() - to.getY();
-        double dirz = me.getZ() - to.getZ();
+        double dirx = me.getX() - to.x();
+        double diry = me.getEyeY() - to.y();
+        double dirz = me.getZ() - to.z();
 
         double len = Math.sqrt(dirx*dirx + diry*diry + dirz*dirz);
 
@@ -83,22 +85,22 @@ public class InteractionUtils {
      * @param blockFace
      * @return
      */
-    private static ViewResult isVisible(MinecraftClient mc, BlockPos toSee, Direction blockFace) {
+    private static ViewResult isVisible(Minecraft mc, BlockPos toSee, Direction blockFace) {
         final ClientPlayerEntity player = mc.player;
         Rotation rotation = getNeededRotation(player, toSee, blockFace);
         
-        float tickDelta = mc.getTickDelta();
+        float tickDelta = mc.getDeltaFrameTime();
         double maxDist = rotation.maxDist + 0.5f;
         
-        Vec3d vec3d = player.getCameraPosVec(tickDelta);
-        Vec3d vec3d2 = getRotationVector(rotation.pitch, rotation.yaw);
-        Vec3d vec3d3 = vec3d.add(vec3d2.x * maxDist, vec3d2.y * maxDist, vec3d2.z * maxDist);
-        HitResult result = mc.world.raycast(new RaycastContext(vec3d, vec3d3,
-                RaycastContext.ShapeType.OUTLINE, 
-                        RaycastContext.FluidHandling.ANY, player));
+        Vector3d vec3d = player.getViewVector(tickDelta);
+        Vector3d vec3d2 = getRotationVector(rotation.pitch, rotation.yaw);
+        Vector3d vec3d3 = vec3d.add(vec3d2.x * maxDist, vec3d2.y * maxDist, vec3d2.z * maxDist);
+        RayTraceResult result = mc.level.clip(new RayTraceContext(vec3d, vec3d3,
+                BlockMode.OUTLINE, 
+                FluidMode.ANY, player));
         
-        if (result.getType() == Type.BLOCK 
-                && !(result.getPos().squaredDistanceTo(player.getX(), player.getEyeY(), player.getZ()) < rotation.maxDist * rotation.maxDist)) { // If there's a block between the player and the location
+        if (result.getType() == Type.BLOCK
+                && !(result.getLocation().distanceToSqr(player.getX(), player.getEyeY(), player.getZ()) < rotation.maxDist * rotation.maxDist)) { // If there's a block between the player and the location
             ViewResult viewResult = ViewResult.VISIBLE;
             viewResult.pitch = rotation.pitch;
             viewResult.yaw = rotation.yaw;
@@ -114,14 +116,14 @@ public class InteractionUtils {
      * @param yaw
      * @return
      */
-    private static Vec3d getRotationVector(float pitch, float yaw) {
+    private static Vector3d getRotationVector(float pitch, float yaw) {
         float f = pitch * 0.017453292F;
         float g = -yaw * 0.017453292F;
         float h = MathHelper.cos(g);
         float i = MathHelper.sin(g);
         float j = MathHelper.cos(f);
         float k = MathHelper.sin(f);
-        return new Vec3d((double)(i * j), (double)(-k), (double)(h * j));
+        return new Vector3d((double)(i * j), (double)(-k), (double)(h * j));
     }
     
     /**
