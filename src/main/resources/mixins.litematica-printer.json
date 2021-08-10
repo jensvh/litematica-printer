@@ -3,7 +3,7 @@
     "package": "io.github.eatmyvenom.litematicin.mixin.Litematica",
     "compatibilityLevel": "JAVA_8",
     "minVersion": "0.7",
-    "refmap": "mixins.litematica.refmap.json",
+    "refmap": "mixins.litematica-printer.refmap.json",
     "client": [
         "ConfigsMixin",
         "GuiConfigsMixin",

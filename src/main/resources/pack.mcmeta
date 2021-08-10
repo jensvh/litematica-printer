@@ -1,6 +1,6 @@
 {
-    "pack": {
-        "description": "Litematica-printer",
-        "pack_format": 4
-    }
+   "pack": {
+      "pack_format": 4,
+      "description": "Litematica-Printer"
+   }
 }

@@ -43,10 +43,6 @@ minecraft {
 
     ext.mod_version = config.mod_version
 
-    if (config.mod_version.endsWith('-dev')) {
-        config.mod_version = config.mod_version + "." + new Date().format('yyyyMMdd.HHmmss')
-    }
-
     // Default run configurations.
     // These can be tweaked, removed, or duplicated as needed.
     runs {

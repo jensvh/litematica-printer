@@ -25,7 +25,7 @@ license="GNU Lesser General Public License v3.0"
     version="${file.jarVersion}" #mandatory
 
     # A display name for the mod
-    displayName="Litematica-printer" #mandatory
+    displayName="Litematica-Printer" #mandatory
 
     # A URL to query for updates for this mod. See the JSON update specification <here>
     #updateJSONURL="http://myurl.me/" #optional
@@ -64,13 +64,6 @@ license="GNU Lesser General Public License v3.0"
     mandatory=true
     versionRange="[1.16.1,)"
     ordering="NONE"
-    side="CLIENT"
-
-[[dependencies.litematica-printer]]
-    modId="malilib"
-    mandatory=true
-    versionRange="[0.10.0-dev.21+beta.1,)"
-    ordering="BEFORE"
     side="CLIENT"
 
 [[dependencies.litematica-printer]]
