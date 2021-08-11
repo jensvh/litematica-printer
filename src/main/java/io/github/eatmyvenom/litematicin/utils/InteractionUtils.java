@@ -95,7 +95,7 @@ public class InteractionUtils {
         Vector3d vec3d3 = vec3d.add(vec3d2.x * maxDist, vec3d2.y * maxDist, vec3d2.z * maxDist);
         RayTraceResult result = mc.level.clip(new RayTraceContext(vec3d, vec3d3,
                 RayTraceContext.BlockMode.OUTLINE, 
-                RayTraceContext.FluidMode.ANY, player));
+                RayTraceContext.FluidMode.NONE, player));
         
         if (result.getType() == Type.BLOCK 
                 && !(result.getLocation().distanceToSqr(player.getX(), player.getEyeY(), player.getZ()) < rotation.maxDist * rotation.maxDist)) { // If there's a block between the player and the location
