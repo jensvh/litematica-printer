@@ -91,10 +91,10 @@ public class Breaker implements IClientTickHandler {
 	 * @return blockBreakingSpeed as a {@code Float}
 	 */
 	private float getBlockBreakingSpeed(BlockState block, Minecraft mc, int slotId) {
-		float f = mc.player.inventory.getItem(slotId).getDestroySpeed(block);
+		float f = ((ItemStack)mc.player.inventory.items.get(slotId)).getDestroySpeed(block);
 	    if (f > 1.0F) {
 	       int i = EnchantmentHelper.getBlockEfficiency(mc.player);
-	       ItemStack itemStack = mc.player.inventory.getSelected().getStack();
+	       ItemStack itemStack = mc.player.inventory.getSelected();
 	       if (i > 0 && !itemStack.isEmpty()) {
 	          f += (float)(i * i + 1);
 	       }
@@ -114,8 +114,7 @@ public class Breaker implements IClientTickHandler {
 			Direction side = Direction.values()[0];
 			
 			if (mc.gameMode.continueDestroyBlock(pos, side)) {
-			    //mc.gameMode.getPlayerMode().isCreative()
-			    mc.particleEngine.crack(pos, side);
+				mc.particleEngine.crack(pos, side);
 				mc.player.swing(Hand.MAIN_HAND);
 			}
 		}

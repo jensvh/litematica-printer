@@ -11,8 +11,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RayTraceContext;
 import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.RayTraceContext.BlockMode;
-import net.minecraft.util.math.RayTraceContext.FluidMode;
 import net.minecraft.util.math.RayTraceResult.Type;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3i;
@@ -54,7 +52,7 @@ public class InteractionUtils {
     private static Rotation getNeededRotation(PlayerEntity me, BlockPos pos, Direction blockFace)
     {
         Vector3d posD = Vector3d.atCenterOf(pos);
-        Vector3d to = posD.add(Vector3d.atLowerCornerOf(blockFace.getNormal()).multiply(0.5d, 0.5d, 0.5d));
+        Vector3d to = posD.add(Vector3d.atLowerCornerOf(blockFace.getNormal()).scale(0.5d));
         
         double dirx = me.getX() - to.x();
         double diry = me.getEyeY() - to.y();
@@ -89,17 +87,17 @@ public class InteractionUtils {
         final ClientPlayerEntity player = mc.player;
         Rotation rotation = getNeededRotation(player, toSee, blockFace);
         
-        float tickDelta = mc.getDeltaFrameTime();
+        float tickDelta = mc.getFrameTime();
         double maxDist = rotation.maxDist + 0.5f;
         
-        Vector3d vec3d = player.getViewVector(tickDelta);
+        Vector3d vec3d = player.getEyePosition(tickDelta);
         Vector3d vec3d2 = getRotationVector(rotation.pitch, rotation.yaw);
         Vector3d vec3d3 = vec3d.add(vec3d2.x * maxDist, vec3d2.y * maxDist, vec3d2.z * maxDist);
         RayTraceResult result = mc.level.clip(new RayTraceContext(vec3d, vec3d3,
-                BlockMode.OUTLINE, 
-                FluidMode.ANY, player));
+                RayTraceContext.BlockMode.OUTLINE, 
+                RayTraceContext.FluidMode.ANY, player));
         
-        if (result.getType() == Type.BLOCK
+        if (result.getType() == Type.BLOCK 
                 && !(result.getLocation().distanceToSqr(player.getX(), player.getEyeY(), player.getZ()) < rotation.maxDist * rotation.maxDist)) { // If there's a block between the player and the location
             ViewResult viewResult = ViewResult.VISIBLE;
             viewResult.pitch = rotation.pitch;

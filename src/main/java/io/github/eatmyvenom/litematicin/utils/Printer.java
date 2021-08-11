@@ -30,7 +30,6 @@ import fi.dy.masa.malilib.util.IntBoundingBox;
 import fi.dy.masa.malilib.util.LayerRange;
 import fi.dy.masa.malilib.util.SubChunkPos;
 import io.github.eatmyvenom.litematicin.utils.FacingDataStorage.FacingData;
-import net.minecraft.block.AbstractSignBlock;
 import net.minecraft.block.BedBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -42,7 +41,6 @@ import net.minecraft.block.FallingBlock;
 import net.minecraft.block.FenceGateBlock;
 import net.minecraft.block.FlowingFluidBlock;
 import net.minecraft.block.HopperBlock;
-import net.minecraft.block.HorizontalBlock;
 import net.minecraft.block.HorizontalFaceBlock;
 import net.minecraft.block.IWaterLoggable;
 import net.minecraft.block.LadderBlock;
@@ -93,7 +91,7 @@ public class Printer {
     /**
      * For now this function tries to equip the correct item for placing the block.
      * @param closest Not used.
-     * @param mc {@code MinecraftClient} for gathering information and accessing the clientPlayer.
+     * @param mc {@code Minecraft} for gathering information and accessing the clientPlayer.
      * @param preference {@code BlockState} of how block should be after placing.
      * @param pos {@code BlockPos} of block you want to place.
      * @return true if correct item is in hand
@@ -104,14 +102,14 @@ public class Printer {
         if (stack.isEmpty() == false) {
             PlayerInventory inv = mc.player.inventory;
 
-            if (mc.player.isCreative()){
+            if (mc.player.abilities.instabuild) {
                 // BlockEntity te = world.getBlockEntity(pos);
 
                 // The creative mode pick block with NBT only works correctly
                 // if the server world doesn't have a TileEntity in that position.
                 // Otherwise it would try to write whatever that TE is into the picked
                 // ItemStack.
-                // if (GuiBase.isCtrlDown() && te != null && mc.world.isAir(pos)) {
+                // if (GuiBase.isCtrlDown() && te != null && mc.level.isAir(pos)) {
                 // ItemUtils.storeTEInStack(stack, te);
                 // }
 
@@ -125,7 +123,7 @@ public class Printer {
                 return true;
             } else {
                
-                int slot = inv.getSlotWithRemainingSpace(stack);
+                int slot = inv.findSlotMatchingItem(stack);
                 boolean shouldPick = inv.selected != slot;
                 boolean canPick = (slot != -1) && slot < 36 && (EASY_PLACE_MODE_PAPER.getBooleanValue() ? slot < maxSlotId : true);
 
@@ -136,9 +134,9 @@ public class Printer {
                 } else if (!shouldPick) {
                     return true;
                 } else if (slot == -1 && Configs.Generic.PICK_BLOCK_SHULKERS.getBooleanValue()) {
-                	slot = InventoryUtils.findSlotWithBoxWithItem(mc.player.containerMenu, stack, false);
+                	slot = InventoryUtils.findSlotWithBoxWithItem(mc.player.inventoryMenu, stack, false);
                 	if (slot != -1) {
-                		ItemStack boxStack = mc.player.containerMenu.slots.get(slot).getItem();
+                		ItemStack boxStack = mc.player.inventoryMenu.slots.get(slot).getItem();
                         InventoryUtils.setPickedItemToHand(boxStack, mc);
                         return true;
                 	}
@@ -151,7 +149,7 @@ public class Printer {
 
     /**
      * Not supported.
-     * @param mc {@code MinecraftClient}
+     * @param mc {@code Minecraft}
      * @return null
      */
     public static ActionResultType doAccuratePlacePrinter(Minecraft mc) {
@@ -181,8 +179,8 @@ public class Printer {
     
     /**
      * Trying to place or break a block.
-     * @param mc {@code MinecraftClient} for accessing the playerclient and managers...
-     * @return {@code ActionResultType} returns how well the placing/breaking went.
+     * @param mc {@code Minecraft} for accessing the playerclient and managers...
+     * @return {@code ActionResult} returns how well the placing/breaking went.
      */
     public static ActionResultType doPrinterAction(Minecraft mc) {
     	if (breaker.isBreakingBlock()) return ActionResultType.SUCCESS; // Don't place blocks while we're breaking one
@@ -197,7 +195,7 @@ public class Printer {
         
         // Paper anti-cheat implementation
         if (EASY_PLACE_MODE_PAPER.getBooleanValue()) {
-            if (mc.player.isCreative()) {
+            if (mc.player.abilities.instabuild) {
                 rangeX = maxReachCreative; 
                 rangeY = maxReachCreative;
                 rangeZ = maxReachCreative;
@@ -313,7 +311,7 @@ public class Printer {
         fromY = Math.max(Math.min(fromY, worldTopY),worldBottomY); 
 
         // Ensure the positions are within the player's range
-        fromX = Math.max(fromX,mc.player.blockPosition().getX() - rangeX);
+        fromX = Math.max(fromX,mc.player.blockPosition().getX()- rangeX);
         fromY = Math.max(fromY,mc.player.blockPosition().getY() - rangeY);
         fromZ = Math.max(fromZ,mc.player.blockPosition().getZ() - rangeZ);
 
@@ -349,7 +347,7 @@ public class Printer {
                         double paperDz = mc.player.getZ() - z;
                         double reachDistance = paperDx * paperDx + paperDy * paperDy + paperDz * paperDz;
                         
-                        if (reachDistance > ((mc.player.isCreative()) ? maxReachCreative * maxReachCreative : maxReachSurvival * maxReachSurvival))
+                        if (reachDistance > ((mc.player.abilities.instabuild) ? maxReachCreative * maxReachCreative : maxReachSurvival * maxReachSurvival))
                         	continue;
                     }
                     
@@ -366,18 +364,18 @@ public class Printer {
                                     // When air, should automatically continue;
                                     stateSchematic = waterReplacementBlock;
                                 }
-                            } else if (mc.player.isCreative()) {
-                        		mc.gameMode.destroyBlock(pos);
+                            } else if (mc.player.abilities.instabuild) {
+                        		mc.gameMode.startDestroyBlock(pos, Direction.DOWN);
                                 interact++;
 
                                 if (interact >= maxInteract) {
                                 	lastPlaced = new Date().getTime();
                                     return ActionResultType.SUCCESS;
                                 }
-                        	} else if (stateClient.getDestroySpeed(null, pos) != -1.0f) { // For survival, (don't break unbreakable blocks)
+                        	} else if (stateClient.getDestroySpeed(mc.level, pos) != -1.0f) { // For survival, (don't break unbreakable blocks)
                         	    // When breakInstantly, a single attack is more then enough, (paper doesn't allow this)
-                				if (stateClient.getDestroySpeed(null, pos) == 0 && !EASY_PLACE_MODE_PAPER.getBooleanValue()) {
-                				    mc.gameMode.destroyBlock(pos);
+                				if (stateClient.getDestroySpeed(mc.level, pos) == 0 && !EASY_PLACE_MODE_PAPER.getBooleanValue()) {
+                				    mc.gameMode.startDestroyBlock(pos, Direction.DOWN);
                 				    return ActionResultType.SUCCESS;
                 				}
                             	breaker.startBreakingBlock(pos, mc);
@@ -400,7 +398,7 @@ public class Printer {
                          * does this too, I just did it because I work with a lot of redstone
                          */
                     	// stateClient.isAir() is already checked in the printCheckCancel
-                        if (!mc.player.isCrouching() && !isPositionCached(pos, true)) {
+                        if (!mc.player.isShiftKeyDown() && !isPositionCached(pos, true)) {
                             Block cBlock = stateClient.getBlock();
                             Block sBlock = stateSchematic.getBlock();
 
@@ -483,9 +481,8 @@ public class Printer {
                                         Vector3d hitPos = new Vector3d(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
 
                                         BlockRayTraceResult hitResult = new BlockRayTraceResult(hitPos, side, pos, false);
-                                        
+
                                         mc.gameMode.useItemOn(mc.player, mc.level, hand, hitResult);
-                                        
                                         interact++;
                                         
                                         if (interact > maxInteract) {
@@ -515,11 +512,11 @@ public class Printer {
                     // If the player has the required item in his inventory or is in creative
                     ItemStack stack = MaterialCache.getInstance().getRequiredBuildItemForState(stateSchematic, world, pos);
                     
-                    // The function above dus not take waterloggable blocks in account
+                    // The function above dus not take IWaterLoggable blocks in account
                     if (stateSchematic.getBlock() instanceof IWaterLoggable && stateSchematic.getValue(BlockStateProperties.WATERLOGGED) && stateClient.getBlock() == stateSchematic.getBlock())
                         stack = new ItemStack(Items.WATER_BUCKET);
 
-                    if (stack.isEmpty() == false && (mc.player.isCreative() || mc.player.inventory.getSlotWithRemainingSpace(stack) != -1)) {
+                    if (stack.isEmpty() == false && (mc.player.abilities.instabuild || mc.player.inventory.findSlotMatchingItem(stack) != -1)) {
                         
                         Block sBlock = stateSchematic.getBlock();
                         
@@ -557,12 +554,14 @@ public class Printer {
                                 						continue;
                             }
                             // Exception for signs (edge case)
-                            if (stateSchematic.getBlock() instanceof StandingSignBlock) {
+                            if (stateSchematic.getBlock() instanceof StandingSignBlock
+                                    && !(stateSchematic.getBlock() instanceof WallSignBlock)) {
                                 if ((MathHelper.floor((double) ((180.0F + mc.player.yRot) * 16.0F / 360.0F) + 0.5D)
                                         & 15) != stateSchematic.getValue(StandingSignBlock.ROTATION))
                                     continue;
+    
                             }
-
+                            
                             // We dont really need this. But I did it anyway so that I could experiment easily.
                             double offX = 0.5;
                             double offY = 0.5;
@@ -575,10 +574,10 @@ public class Printer {
                             
                             // This should prevent the printer from placing torches and ... in water
                             if (!blockSchematic.canSurvive(stateSchematic, mc.level, pos)) continue;
-                            
-                            if (blockSchematic instanceof HorizontalBlock || blockSchematic instanceof TorchBlock
+
+                            if (blockSchematic instanceof HorizontalFaceBlock || blockSchematic instanceof TorchBlock
                                     || blockSchematic instanceof LadderBlock || blockSchematic instanceof TrapDoorBlock
-                                    || blockSchematic instanceof TripWireHookBlock || blockSchematic instanceof AbstractSignBlock
+                                    || blockSchematic instanceof TripWireHookBlock || blockSchematic instanceof StandingSignBlock
                                     || blockSchematic instanceof EndRodBlock) {
     
                                 /*
@@ -676,12 +675,12 @@ public class Printer {
                             // System.out.printf("pos: %s side: %s, hit: %s\n", pos, side, hitPos);
                             // pos, side, hitPos
                             
-                            ActionResultType ActionResultType = mc.gameMode.useItemOn(mc.player, mc.level, hand, hitResult);
+                            ActionResultType actionResult = mc.gameMode.useItemOn(mc.player, mc.level, hand, hitResult);
                             
-                            if (!ActionResultType.consumesAction()) 
+                            if (!actionResult.consumesAction()) 
                                 continue;
                             
-                            if (ActionResultType.shouldSwing())
+                            if (actionResult.shouldSwing())
                                    mc.player.swing(hand);
                             
                             // Ugly workaround, only cache when the block doesn't need to be waterlogged
@@ -725,13 +724,13 @@ public class Printer {
                             // Currently only water/lava blocks placement is supported
                             if (stateSchematic.getBlock() instanceof FlowingFluidBlock) {
                                 
-                                // Water can only be placed if the neighbor is a solid block -> not air and not a waterloggable block
+                                // Water can only be placed if the neighbor is a solid block -> not air and not a IWaterLoggable block
                                 result = InteractionUtils.canSeeAndInteractWithBlock(pos, mc,
                                         (state) -> !state.isAir() && !state.hasProperty(BlockStateProperties.WATERLOGGED));
                                 
                             }else if (stateSchematic.getBlock() instanceof IWaterLoggable) {
                                 
-                                // Waterloggable block only visible when neighbor is air.
+                                // IWaterLoggable block only visible when neighbor is air.
                                 result = InteractionUtils.canSeeAndInteractWithBlock(pos, mc,
                                         (state) -> state.isAir());
                             }
@@ -763,16 +762,16 @@ public class Printer {
                             mc.player.yRot = result.yaw;
                             mc.player.xRot = result.pitch;
 
-                            ActionResultType ActionResultType = mc.gameMode.useItem(mc.player, mc.level, hand);
+                            ActionResultType actionResult = mc.gameMode.useItem(mc.player, mc.level, hand);
                             
                             // Set rotation back to original
                             mc.player.yRot = previousYaw;
                             mc.player.xRot = previousPitch;
                             
-                            if (!ActionResultType.consumesAction())
+                            if (!actionResult.consumesAction())
                                   continue;
 
-                            if (ActionResultType.shouldSwing())
+                            if (actionResult.shouldSwing())
                                mc.player.swing(hand);
                            
                             // Mark that this position has been handled (use the non-offset position that is checked above)
@@ -822,7 +821,7 @@ public class Printer {
                     return facing == horizontalFacing;
                 }
             case 2: // Wall mountable, such as a lever, only use player direction if not on wall.
-                return stateSchematic.getValue(BlockStateProperties.ATTACH_FACE) == AttachFace.WALL
+                return stateSchematic.getValue(HorizontalFaceBlock.FACE) == AttachFace.WALL
                         || facing == horizontalFacing;
             default: // Ignore rest -> TODO: Other blocks like anvils, etc...
                 return true;
@@ -898,9 +897,9 @@ public class Printer {
         double y = pos.getY();
         double z = pos.getZ();
 
-        double dx = hitVecIn.x();
-        double dy = hitVecIn.y();
-        double dz = hitVecIn.z();
+        double dx = hitVecIn.x;
+        double dy = hitVecIn.y;
+        double dz = hitVecIn.z;
         Block block = state.getBlock();
 
         /*
@@ -977,9 +976,9 @@ public class Printer {
 
         } else if (blockSchematic instanceof WallSignBlock) {
             return stateSchematic.getValue(WallSignBlock.FACING);
-        } else if (blockSchematic instanceof AbstractSignBlock) {
+        } else if (blockSchematic instanceof StandingSignBlock) {
             return Direction.UP;
-        } else if (stateSchematic.hasProperty(HorizontalFaceBlock.FACE)) {
+        } else if (blockSchematic instanceof HorizontalFaceBlock) {
             AttachFace location = stateSchematic.getValue(HorizontalFaceBlock.FACE);
             if (location == AttachFace.FLOOR) {
                 return Direction.UP;

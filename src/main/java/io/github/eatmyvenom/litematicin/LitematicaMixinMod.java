@@ -18,7 +18,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 @Mod("litematica-printer")
-public class LitematicaMixinMod {
+public class LitematicaMixinMod  {
 
 	public static final ConfigInteger EASY_PLACE_MODE_RANGE_X      	= new ConfigInteger("easyPlaceModeRangeX", 3, 0, 1024, "X Range for EasyPlace");
 	public static final ConfigInteger EASY_PLACE_MODE_RANGE_Y      	= new ConfigInteger("easyPlaceModeRangeY", 3, 0, 1024, "Y Range for EasyPlace");
@@ -43,29 +43,28 @@ public class LitematicaMixinMod {
 			.add(EASY_PLACE_MODE_REPLACE_FLUIDS)
 			.build();
     
-    public LitematicaMixinMod()
+    public LitematicaMixinMod() 
     {
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onClientSetup);
     }
+    
+    private void onClientSetup(final FMLClientSetupEvent event) {
+        System.out.println("YeeFuckinHaw");
+        EASY_PLACE_MODE_REPLACE_FLUIDS.setValueChangeCallback((config) -> {
+            String name = config.getStringValue();
+            
+            if (name.isEmpty() || name.equals("none")) {
+                Printer.waterReplacementBlock = Blocks.AIR.defaultBlockState();
+                return;
+            }
+            Block block = Registry.BLOCK.get(new ResourceLocation(name));
 
-    private void onClientSetup(final FMLClientSetupEvent event)
-    {
-		System.out.println("YeeFuckinHaw");
-		EASY_PLACE_MODE_REPLACE_FLUIDS.setValueChangeCallback((config) -> {
-		    String name = config.getStringValue();
-		    
-	        if (name.isEmpty() || name.equals("none")) {
-	            Printer.waterReplacementBlock = Blocks.AIR.defaultBlockState();
-	            return;
-	        }
-	        Block block = Registry.BLOCK.get(new ResourceLocation(name));
-
-	        if (block != null && block.defaultBlockState().getMaterial().isSolid()) { 
-	            Printer.waterReplacementBlock = block.defaultBlockState();
-	            return;
-	        }
-	        
-	        Printer.waterReplacementBlock = Blocks.AIR.defaultBlockState();
-		});
-	}
+            if (block != null && block.defaultBlockState().getMaterial().isSolid()) { 
+                Printer.waterReplacementBlock = block.defaultBlockState();
+                return;
+            }
+            
+            Printer.waterReplacementBlock = Blocks.AIR.defaultBlockState();
+        });
+    }
 }
