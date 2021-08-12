@@ -66,6 +66,7 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.network.play.client.CPlayerPacket;
 import net.minecraft.state.properties.AttachFace;
 import net.minecraft.state.properties.BedPart;
 import net.minecraft.state.properties.BlockStateProperties;
@@ -762,6 +763,8 @@ public class Printer {
                             mc.player.yRot = result.yaw;
                             mc.player.xRot = result.pitch;
 
+                            mc.player.connection.send(new CPlayerPacket.PositionRotationPacket(mc.player.getX(), mc.player.getY(), 
+                                    mc.player.getZ(), mc.player.yRot, mc.player.xRot, mc.player.isOnGround()));
                             ActionResultType actionResult = mc.gameMode.useItem(mc.player, mc.level, hand);
                             
                             // Set rotation back to original
