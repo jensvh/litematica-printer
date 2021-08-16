@@ -26,7 +26,6 @@ import fi.dy.masa.litematica.util.InventoryUtils;
 import fi.dy.masa.litematica.util.RayTraceUtils;
 import fi.dy.masa.litematica.util.RayTraceUtils.RayTraceWrapper;
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
-import fi.dy.masa.litematica.util.WorldUtils;
 import fi.dy.masa.malilib.util.IntBoundingBox;
 import fi.dy.masa.malilib.util.LayerRange;
 import fi.dy.masa.malilib.util.SubChunkPos;
@@ -38,6 +37,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.ComparatorBlock;
+import net.minecraft.block.enums.ComparatorMode;
 import net.minecraft.block.DoorBlock;
 import net.minecraft.block.EndRodBlock;
 import net.minecraft.block.FallingBlock;
@@ -1067,7 +1067,57 @@ public class Printer {
             item.hasClicked = true;
         positionCache.add(item);
     }
+	public static Vec3d applyCarpetProtocolHitVec(BlockPos pos, BlockState state, Vec3d hitVecIn)
+	    {
+  	      double x = hitVecIn.x;
+ 	       double y = hitVecIn.y;
+   	     double z = hitVecIn.z;
+   	     Block block = state.getBlock();
+   	     Direction facing = fi.dy.masa.malilib.util.BlockUtils.getFirstPropertyFacingValue(state);
+   	     final int propertyIncrement = 32;
+   	     double relX = hitVecIn.x - pos.getX();
 
+    	    if (facing != null)
+   	     {
+    	        x = pos.getX() + relX + 2 + (facing.getId() * 2);
+   	     }
+	if (block instanceof RepeaterBlock)
+      	  {
+  	          x += ((state.get(RepeaterBlock.DELAY))) * propertyIncrement;
+   	     }
+  	      else if (block instanceof TrapdoorBlock && state.get(TrapdoorBlock.HALF) == BlockHalf.TOP)
+ 	       {
+  	          x += propertyIncrement;
+ 	       }
+  	      else if (block instanceof ComparatorBlock && state.get(ComparatorBlock.MODE) == ComparatorMode.SUBTRACT)
+    	    {
+  	          x += propertyIncrement;
+  	      }
+  	      else if (block instanceof TrapdoorBlock && state.get(TrapdoorBlock.HALF) == BlockHalf.TOP)
+  	      {
+  	          x += propertyIncrement;
+  	      }
+   	     else if (block instanceof StairsBlock && state.get(StairsBlock.HALF) == BlockHalf.TOP)
+  	      {
+  	          x += propertyIncrement;
+  	      }
+  	      else if (block instanceof SlabBlock && state.get(SlabBlock.TYPE) != SlabType.DOUBLE)
+  	      {
+            //x += 10; // Doesn't actually exist (yet?)
+	
+            // Do it via vanilla
+  	          if (state.get(SlabBlock.TYPE) == SlabType.TOP)
+  	          {
+     	           y = pos.getY() + 0.9;
+  	          }
+    	        else
+    	        {
+                y = pos.getY();
+       	     }
+     	   }
+
+    	    return new Vec3d(x, y, z);
+  	  }
     public static class PositionCache {
         private final BlockPos pos;
         private final long time;
