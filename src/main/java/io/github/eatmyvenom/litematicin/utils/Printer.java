@@ -8,7 +8,7 @@ import static io.github.eatmyvenom.litematicin.LitematicaMixinMod.EASY_PLACE_MOD
 import static io.github.eatmyvenom.litematicin.LitematicaMixinMod.EASY_PLACE_MODE_RANGE_X;
 import static io.github.eatmyvenom.litematicin.LitematicaMixinMod.EASY_PLACE_MODE_RANGE_Y;
 import static io.github.eatmyvenom.litematicin.LitematicaMixinMod.EASY_PLACE_MODE_RANGE_Z;
-
+import static io.github.eatmyvenom.litematicin.LitematicaMixinMod.ACCURATE_BLOCK_PLACEMENT;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -26,6 +26,7 @@ import fi.dy.masa.litematica.util.InventoryUtils;
 import fi.dy.masa.litematica.util.RayTraceUtils;
 import fi.dy.masa.litematica.util.RayTraceUtils.RayTraceWrapper;
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
+import fi.dy.masa.litematica.util.WorldUtils;
 import fi.dy.masa.malilib.util.IntBoundingBox;
 import fi.dy.masa.malilib.util.LayerRange;
 import fi.dy.masa.malilib.util.SubChunkPos;
@@ -196,7 +197,7 @@ public class Printer {
         int rangeZ = EASY_PLACE_MODE_RANGE_Z.getIntegerValue();
         int maxReach = Math.max(Math.max(rangeX,rangeY),rangeZ);
         boolean breakBlocks = EASY_PLACE_MODE_BREAK_BLOCKS.getBooleanValue();
-        
+        boolean CanUseProtocol = ACCURATE_BLOCK_PLACEMENT.getBooleanValue();
         // Paper anti-cheat implementation
         if (EASY_PLACE_MODE_PAPER.getBooleanValue()) {
             if (mc.player.getAbilities().creativeMode) {
@@ -548,7 +549,7 @@ public class Printer {
                                     .getFirstPropertyFacingValue(stateSchematic);
                             if (facing != null) {
                                 FacingData facedata = facingDataStorage.getFacingData(stateSchematic);
-                                if (!canPlaceFace(facedata, stateSchematic, mc.player, primaryFacing, horizontalFacing, facing))
+                                if (!CanUseProtocol && !canPlaceFace(facedata, stateSchematic, mc.player, primaryFacing, horizontalFacing, facing))
                                     continue;
     
                                 if ((stateSchematic.getBlock() instanceof DoorBlock
@@ -672,7 +673,7 @@ public class Printer {
                             
                             Vec3d hitPos = new Vec3d(offX, offY, offZ);
                             // Carpet Accurate Placement protocol support, plus BlockSlab support
-                            hitPos = applyHitVec(npos, stateSchematic, hitPos, side);
+                            if(CanUseProtocol) {hitPos = WorldUtils.applyCarpetProtocolHitVec(npos,stateSchematic,hitPos);} else {hitPos = applyHitVec(npos, stateSchematic, hitPos, side);}
                             
                             BlockHitResult hitResult = new BlockHitResult(hitPos, side, npos, false);
                             
