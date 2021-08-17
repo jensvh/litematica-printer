@@ -43,6 +43,7 @@ import net.minecraft.block.EndRodBlock;
 import net.minecraft.block.FallingBlock;
 import net.minecraft.block.FenceGateBlock;
 import net.minecraft.block.FluidBlock;
+import net.minecraft.block.GlazedTerracottaBlock;
 import net.minecraft.block.HopperBlock;
 import net.minecraft.block.LadderBlock;
 import net.minecraft.block.LeverBlock;
@@ -673,7 +674,7 @@ public class Printer {
                             
                             Vec3d hitPos = new Vec3d(offX, offY, offZ);
                             // Carpet Accurate Placement protocol support, plus BlockSlab support
-                            if(CanUseProtocol) {hitPos = WorldUtils.applyCarpetProtocolHitVec(npos,stateSchematic,hitPos);} else {hitPos = applyHitVec(npos, stateSchematic, hitPos, side);}
+                            if(CanUseProtocol &&IsBlockSupportedCarpet(stateSchematic.getBlock())) {hitPos = WorldUtils.applyCarpetProtocolHitVec(npos,stateSchematic,hitPos);} else {hitPos = applyHitVec(npos, stateSchematic, hitPos, side);}
                             
                             BlockHitResult hitResult = new BlockHitResult(hitPos, side, npos, false);
                             
@@ -1118,6 +1119,13 @@ public class Printer {
 
     	    return new Vec3d(x, y, z);
   	  }
+    private static Boolean IsBlockSupportedCarpet(Block SchematicBlock){
+	if (SchematicBlock instanceof GlazedTerracottaBlock || SchematicBlock instanceof ObserverBlock || SchematicBlock instanceof RepeaterBlock || SchematicBlock instanceof TrapdoorBlock ||
+		SchematicBlock instanceof ComparatorBlock || SchematicBlock instanceof DispenserBlock || SchematicBlock instanceof PistonBlock || SchematicBlock instanceof StairsBlock)
+		{return true;}
+	return false;
+
+	}
     public static class PositionCache {
         private final BlockPos pos;
         private final long time;
