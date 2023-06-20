@@ -5,12 +5,12 @@ import fi.dy.masa.malilib.event.TickHandler;
 import fi.dy.masa.malilib.hotkeys.KeybindMulti;
 import fi.dy.masa.malilib.interfaces.IClientTickHandler;
 import net.minecraft.block.BlockState;
-import net.minecraft.client.Minecraft;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 
 /**
  * The breaking needs to be done every tick, since the WorldUtils.easyPlaceOnUseTick (which calls our Printer)
@@ -39,14 +39,14 @@ public class Breaker implements IClientTickHandler {
 	 * @param pos {@code BlockPos} of the block to break
 	 * @param mc {@code MinecraftClient} for accessing data
 	 */
-	public void startBreakingBlock(BlockPos pos, Minecraft mc) {
+	public void startBreakingBlock(BlockPos pos, MinecraftClient mc) {
 		this.breakingBlock = true;
 		this.pos = pos;
 		// Check for best tool in inventory
 		int bestSlotId = getBestItemSlotIdToMineBlock(mc, pos);
 		// If slot isn't selected, change
-		if (mc.player.inventory.selected != bestSlotId) {
-			mc.player.inventory.selected = bestSlotId;
+		if (mc.player.getInventory().selectedSlot != bestSlotId) {
+			mc.player.getInventory().selectedSlot = bestSlotId;
 		}
 		// Start breaking
 		TickHandler.getInstance().registerClientTickHandler(this);
@@ -68,14 +68,14 @@ public class Breaker implements IClientTickHandler {
 	 * @param blockToMine {@code BlockPos} of block to compare blockBreakingSpeeds with.
 	 * @return slotId as an {@code Integer}
 	 */
-	private int getBestItemSlotIdToMineBlock(Minecraft mc, BlockPos blockToMine) {
+	private int getBestItemSlotIdToMineBlock(MinecraftClient mc, BlockPos blockToMine) {
 		int bestSlot = 0;
 		float bestSpeed = 0;
-		BlockState state = mc.level.getBlockState(blockToMine);
+		BlockState state = mc.world.getBlockState(blockToMine);
 		for (int i = 8; i >= 0; i--) {
 			float speed = getBlockBreakingSpeed(state, mc, i);
 			if ((speed > bestSpeed && speed > 1.0F)
-					|| (speed >= bestSpeed && !mc.player.inventory.getItem(i).isDamageableItem())) {
+					|| (speed >= bestSpeed && !mc.player.getInventory().getStack(i).isDamageable())) {
 				bestSlot = i;
 				bestSpeed = speed;
 			}
@@ -90,11 +90,11 @@ public class Breaker implements IClientTickHandler {
 	 * @param slotId id where item is in inventory.
 	 * @return blockBreakingSpeed as a {@code Float}
 	 */
-	private float getBlockBreakingSpeed(BlockState block, Minecraft mc, int slotId) {
-		float f = ((ItemStack)mc.player.inventory.items.get(slotId)).getDestroySpeed(block);
+	private float getBlockBreakingSpeed(BlockState block, MinecraftClient mc, int slotId) {
+		float f = ((ItemStack)mc.player.getInventory().main.get(slotId)).getMiningSpeedMultiplier(block);
 	    if (f > 1.0F) {
-	       int i = EnchantmentHelper.getBlockEfficiency(mc.player);
-	       ItemStack itemStack = mc.player.inventory.getSelected();
+	       int i = EnchantmentHelper.getEfficiency(mc.player);
+	       ItemStack itemStack = mc.player.getInventory().getMainHandStack();
 	       if (i > 0 && !itemStack.isEmpty()) {
 	          f += (float)(i * i + 1);
 	       }
@@ -105,25 +105,25 @@ public class Breaker implements IClientTickHandler {
 	 * Don't call this function, it's automatically called every tick by malilib.
 	 */
 	@Override
-	public void onClientTick(Minecraft mc) {
+	public void onClientTick(MinecraftClient mc) {
 		if (!isBreakingBlock()) return;
 		if (mc.player == null) return;
 		
 		if (Hotkeys.EASY_PLACE_ACTIVATION.getKeybind().isKeybindHeld() &&
-	            KeybindMulti.isKeyDown(KeybindMulti.getKeyCode(mc.options.keyUse))) { // Only continue mining while the correct keys are pressed
+	            KeybindMulti.isKeyDown(KeybindMulti.getKeyCode(mc.options.useKey))) { // Only continue mining while the correct keys are pressed
 			Direction side = Direction.values()[0];
 			
-			if (mc.gameMode.continueDestroyBlock(pos, side)) {
-				mc.particleEngine.crack(pos, side);
-				mc.player.swing(Hand.MAIN_HAND);
+			if (mc.interactionManager.updateBlockBreakingProgress(pos, side)) {
+				mc.particleManager.addBlockBreakingParticles(pos, side);
+				mc.player.swingHand(Hand.MAIN_HAND);
 			}
 		}
 		
-		if (!mc.level.getBlockState(pos).isAir()) return; // If block isn't broken yet, dont stop
+		if (!mc.world.getBlockState(pos).isAir()) return; // If block isn't broken yet, dont stop
 		
 		// Stop breaking
 		this.breakingBlock = false;
-		mc.gameMode.stopDestroyBlock();
+		mc.interactionManager.cancelBlockBreaking();
 	}
 	
 }

@@ -12,11 +12,13 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 public class ConfigsMixin {
     @Redirect(method = "loadFromFile", at = @At(value = "FIELD", target = "Lfi/dy/masa/litematica/config/Configs$Generic;OPTIONS:Lcom/google/common/collect/ImmutableList;"))
     private static ImmutableList<IConfigBase> moreOptions() {
+    	System.out.println("Litematica-Printer: ConfigsMixin: LoadFromFile");
         return LitematicaMixinMod.betterList;
     }
 
     @Redirect(method = "saveToFile", at = @At(value = "FIELD", target = "Lfi/dy/masa/litematica/config/Configs$Generic;OPTIONS:Lcom/google/common/collect/ImmutableList;"))
     private static ImmutableList<IConfigBase> moreeOptions() {
+    	System.out.println("Litematica-Printer: ConfigsMixin: saveToFile");
         return LitematicaMixinMod.betterList;
     }
 }

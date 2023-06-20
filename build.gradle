@@ -1,184 +1,121 @@
-buildscript {
-    repositories {
-        maven { url = 'https://files.minecraftforge.net/maven' }
-        maven {
-            name = 'sponge'
-            url = 'https://repo.spongepowered.org/repository/maven-public/'
-        }
-        jcenter()
-        mavenCentral()
-    }
-    dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
-        classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
-    }
-}
-apply plugin: 'net.minecraftforge.gradle'
-// Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
-apply plugin: 'org.spongepowered.mixin'
-apply plugin: 'eclipse'
-apply plugin: 'maven-publish'
-
-ext.configFile = file "build.properties"
-
-configFile.withReader {
-    def prop = new Properties()
-    prop.load(it)
-    project.ext.config = new ConfigSlurper().parse prop
+plugins {
+	id "dev.architectury.loom" version "0.12.0-SNAPSHOT"
 }
 
-sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
 
-println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ') Arch: ' + System.getProperty('os.arch'))
-minecraft {
-    // The mappings can be changed at any time, and must be in the following format.
-    // snapshot_YYYYMMDD   Snapshot are built nightly.
-    // stable_#            Stables are built at the discretion of the MCP team.
-    // Use non-default mappings at your own risk. they may not always work.
-    // Simply re-run your setup task after changing the mappings to update your workspace.
-    mappings channel: 'official', version: '1.16.5'
-    // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
-    
-    // accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+loom {
+	// use this if you are using the official mojang mappings
+	// and want loom to stop warning you about their license
+	silentMojangMappingsLicense()
 
-    ext.mod_version = config.mod_version
+	// since loom 0.10, you are **required** to use the
+	// "forge" block to configure forge-specific features,
+	// such as the mixinConfigs array or datagen
+	forge {
+		// specify the mixin configs used in this mod
+		// this will be added to the jar manifest as well!
+		mixinConfigs = [
+				"mixins.litematica_printer.json"
+		]
 
-    // Default run configurations.
-    // These can be tweaked, removed, or duplicated as needed.
-    runs {
-        client {
-            workingDirectory project.file('run')
+		// missing access transformers?
+		// don't worry, you can still use them!
+		// note that your AT *MUST* be located at
+		// src/main/resources/META-INF/accesstransformer.cfg
+		// to work as there is currently no config option to change this.
+		// also, any names used in your access transformer will need to be
+		// in SRG mapped ("func_" / "field_" with MCP class names) to work!
+		// (both of these things may be subject to change in the future)
 
-            // Recommended logging data for a userdev environment
-            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+		// this will create a data generator configuration
+		// that you can use to automatically generate assets and data
+		// using architectury loom. Note that this currently *only* works
+		// for forge projects made with architectury loom!
+		dataGen {
+			mod project.mod_id
+		}
+	}
 
-            // Recommended logging level for the console
-            property 'forge.logging.console.level', 'debug'
-
-            mods {
-                examplemod {
-                    source sourceSets.main
-                }
-            }
-        }
-
-        server {
-            workingDirectory project.file('run')
-
-            // Recommended logging data for a userdev environment
-            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
-
-            // Recommended logging level for the console
-            property 'forge.logging.console.level', 'debug'
-
-            mods {
-                examplemod {
-                    source sourceSets.main
-                }
-            }
-        }
-
-        data {
-            workingDirectory project.file('run')
-
-            // Recommended logging data for a userdev environment
-            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
-
-            // Recommended logging level for the console
-            property 'forge.logging.console.level', 'debug'
-
-            args '--mod', 'examplemod', '--all', '--output', file('src/generated/resources/')
-
-            mods {
-                examplemod {
-                    source sourceSets.main
-                }
-            }
-        }
-    }
+	// This allows you to modify your launch configurations,
+	// for example to add custom arguments. In this case, we want
+	// the data generator to check our resources directory for
+	// existing files. (see Forge's ExistingFileHelper for more info)
 }
-
-version = project.config.mod_version
-group = config.group + "." + config.mod_id // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = config.mod_file_name + '-' + config.minecraft_version_out
 
 repositories {
-    maven {
-        url 'https://www.dogforce-games.com/maven/'
-    }
-    maven { url = 'https://maven.tterrag.com' }
-//    maven { url = 'https://masa.dy.fi/maven' }
-
+	// maven { url 'https://maven.terraformersmc.com/releases/' }
+	// maven { url 'https://maven.quiltmc.org/repository/release/' }
 }
 
 dependencies {
-    // Specify the version of Minecraft to use, If this is any group other then 'net.minecraft' it is assumed
-    // that the dep is a ForgeGradle 'patcher' dependency. And it's patches will be applied.
-    // The userdev artifact is a special name and will get all sorts of transformations applied to it.
-    minecraft 'net.minecraftforge:forge:' + config.minecraft_version + '-' + config.forge_version
-    //compile files('libs/litematica-forge-1.16.5-0.0.0-dev.20210606.150444.jar')
-	//compile files('libs/malilib-forge-1.16.5-0.10.0-dev.21+beta.1.jar');
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	mappings "net.fabricmc:yarn:${project.mappings_version}:v2"
+	forge "net.minecraftforge:forge:${project.forge_version}"
+	//modImplementation "net.fabricmc:fabric-loader:${project.fabric_loader_version}"
+	implementation "com.google.code.findbugs:jsr305:3.0.2"
 	
-	implementation fileTree(dir: "./libs", include: "litematica-forge-1.16.5-0.0.0-dev.20210606.150444.jar")
-	implementation fileTree(dir: "./libs", include: "malilib-forge-1.16.5-0.10.0-dev.21+beta.1.jar")
-	
-	//implementation fileTree(dir: "../malilib/build/libs", include: "**.jar")
-    //implementation fileTree(dir: "../malilib/build/libs", include: "malilib-forge-${config.minecraft_version_out}-${config.malilib_version}**.jar")
-    //implementation 'fi.dy.masa.malilib:malilib-forge-' + config.minecraft_version_out + ':' + config.malilib_version + ':deobf'
+	modImplementation fileTree(dir: "../malilib-forge-malilib-forge-1.18.x/build/libs", include: "**.jar")
+	modImplementation fileTree(dir: "../litematica-forge-litematica-forge-1.18.x/build/libs", include: "**.jar")
 
-    // You may put jars on which you depend on in ./libs or you may define them like so..
-    // compile "some.group:artifact:version:classifier"
-    // compile "some.group:artifact:version"
+	//implementation fileTree(dir: "./libs", include: "litematica-forge-1.18.2-0.11.6.jar")
+	//implementation fileTree(dir: "./libs", include: "malilib-forge-1.18.2-0.12.1.jar")
 
-    // Real examples
-    // compile 'com.mod-buildcraft:buildcraft:6.0.8:dev'  // adds buildcraft to the dev env
-    // compile 'com.googlecode.efficient-java-matrix-library:ejml:0.24' // adds ejml to the dev env
+	// Fabric API. This is technically optional, but you probably want it anyway.
+	//modImplementation "net.fabricmc.fabric-api:fabric-api:" + project.fabric_version
 
-    // The 'provided' configuration is for optional dependencies that exist at compile-time but might not at runtime.
-    // provided 'com.mod-buildcraft:buildcraft:6.0.8:dev'
+	//modImplementation(fabricApi.module("fabric-resource-loader-v0", project.fabric_api_version))
+	//include(modImplementation(fabricApi.module("fabric-resource-loader-v0", project.fabric_api_version)))
 
-    // These dependencies get remapped to your current MCP mappings
-    // deobf 'com.mod-buildcraft:buildcraft:6.0.8:dev'
+	//modCompileOnly "com.terraformersmc:modmenu:${project.mod_menu_version}"
+}
 
-    // For more info...
-    // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
-    // http://www.gradle.org/docs/current/userguide/dependency_management.html
+group = project.group + "." + project.mod_id
+archivesBaseName = project.mod_file_name + '-' + project.minecraft_version_out
+version = project.mod_version
+
+if (version.endsWith('-dev')) {
+	version += "." + new Date().format('yyyyMMdd.HHmmss')
+}
+
+processResources {
+	inputs.property "version", project.version
 
 }
 
-// Example for how to get properties into the manifest for reading by the runtime..
+tasks.withType(JavaCompile).configureEach {
+	// ensure that the encoding is set to UTF-8, no matter what the system default is
+	// this fixes some edge cases with special characters not displaying correctly
+	// see http://yodaconditions.net/blog/fix-for-java-file-encoding-problems-with-gradle.html
+	// If Javadoc is generated, this must be specified in that task too.
+	it.options.encoding = "UTF-8"
+
+	// Minecraft 1.18 (1.18-pre2) upwards uses Java 17.
+	it.options.release = 17
+}
+
+java {
+	// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
+	// if it is present.
+	// If you remove this line, sources will not be generated.
+	withSourcesJar()
+}
+
 jar {
-    manifest {
-        attributes([
-            "Specification-Title": "${config.mod_id}",
-            "Specification-Vendor": "${config.author}",
-            "Specification-Version": "1", // We are version 1 of ourselves
-            "Implementation-Title": "${config.mod_name}",
-            "Implementation-Version": "${config.mod_version}",
-            "Implementation-Vendor" :"${config.author}",
-            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
-            "MixinConfigs": 'mixins.' + config.mod_id + '.json'
-        ])
-    }
-}
+	from("LICENSE") {
+		rename { "${it}_${project.archivesBaseName}"}
+	}
 
-mixin {
-    add sourceSets.main, 'mixins.' + config.mod_id + '.refmap.json'
-}
-
-// Example configuration to allow publishing using the maven-publish task
-// This is the preferred method to reobfuscate your jar file
-jar.finalizedBy('reobfJar') 
-// However if you are in a multi-project build, dev time needs unobfed jar files, so you can delay the obfuscation until publishing by doing
-//publish.dependsOn('reobfJar')
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            artifact jar
-        }
-    }
-    repositories {
-        
-    }
+	manifest {
+		attributes([
+				"Specification-Title"     : project.mod_id,
+				"Specification-Vendor"    : project.author,
+				"Specification-Version"   : "1",
+				"Implementation-Title"    : project.mod_name,
+				"Implementation-Version"  : mod_version,
+				"Implementation-Vendor"   : project.author,
+				"Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+		])
+	}
 }

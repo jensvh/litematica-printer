@@ -12,6 +12,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 public class GuiConfigsMixin {
     @Redirect(method = "getConfigs", at = @At(value = "FIELD", target = "Lfi/dy/masa/litematica/config/Configs$Generic;OPTIONS:Lcom/google/common/collect/ImmutableList;"))
     private ImmutableList<IConfigBase> moreOptions() {
+    	System.out.println("Litematica-Printer: GuiConfigsMixin: getConfigs");
         return LitematicaMixinMod.betterList;
     }
 }
